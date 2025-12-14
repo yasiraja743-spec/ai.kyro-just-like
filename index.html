@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon KyroAI</title>
+
+<style>
+:root{
+  --bg:#020617;
+  --neon-blue:#22d3ee;
+  --neon-green:#10f0a0;
+  --neon-purple:#a78bfa;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:system-ui;
+  background:radial-gradient(circle at top,#020617,#000);
+  color:white;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+header{
+  text-align:center;
+  padding:16px;
+  border-bottom:1px solid var(--neon-blue);
+  box-shadow:0 0 20px var(--neon-blue);
+}
+header h1{
+  margin:0;
+  color:var(--neon-green);
+  text-shadow:0 0 12px var(--neon-green);
+}
+main{
+  flex:1;
+  overflow-y:auto;
+  padding:20px;
+}
+.chat{
+  max-width:900px;
+  margin:auto;
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+.msg{
+  padding:16px;
+  border-radius:14px;
+  background:#020617;
+  border:1px solid var(--neon-blue);
+  box-shadow:0 0 12px var(--neon-blue);
+  white-space:pre-wrap;
+}
+.user{
+  align-self:flex-end;
+  border-color:var(--neon-green);
+  box-shadow:0 0 14px var(--neon-green);
+}
+.ai{
+  align-self:flex-start;
+  border-color:var(--neon-purple);
+  box-shadow:0 0 14px var(--neon-purple);
+}
+footer{
+  padding:14px;
+  border-top:1px solid var(--neon-blue);
+  box-shadow:0 -0 20px var(--neon-blue);
+}
+.composer{
+  max-width:900px;
+  margin:auto;
+  display:flex;
+  gap:10px;
+}
+textarea{
+  flex:1;
+  height:56px;
+  padding:14px;
+  border-radius:14px;
+  background:#020617;
+  color:white;
+  border:1px solid var(--neon-blue);
+  box-shadow:inset 0 0 10px var(--neon-blue);
+  resize:none;
+}
+button{
+  padding:0 20px;
+  border-radius:14px;
+  background:transparent;
+  border:1px solid var(--neon-green);
+  color:var(--neon-green);
+  font-weight:bold;
+  box-shadow:0 0 14px var(--neon-green);
+  cursor:pointer;
+}
+button:hover{
+  background:var(--neon-green);
+  color:#022c22;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>NEON CHATGPT</h1>
+</header>
+
+<main>
+  <div class="chat" id="chat"></div>
+</main>
+
+<footer>
+  <div class="composer">
+    <textarea id="input" placeholder="Tulis pesan..."></textarea>
+    <button onclick="send()">Kirim</button>
+  </div>
+</footer>
+
+<script>
+/* =====================================================
+   TEMPEL API KEY OPENAI BARU KAMU DI SINI
+===================================================== */
+const OPENAI_API_KEY = "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";
+/* ===================================================== */
+
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+
+function bubble(role){
+  const d=document.createElement("div");
+  d.className="msg "+role;
+  chat.appendChild(d);
+  chat.scrollTop=chat.scrollHeight;
+  return d;
+}
+
+function typeText(el,text,speed=18){
+  let i=0;
+  const t=setInterval(()=>{
+    el.textContent+=text[i++];
+    chat.scrollTop=chat.scrollHeight;
+    if(i>=text.length) clearInterval(t);
+  },speed);
+}
+
+async function send(){
+  const text=input.value.trim();
+  if(!text) return;
+  input.value="";
+
+  bubble("user").textContent=text;
+  const ai=bubble("ai");
+  ai.textContent="▌";
+
+  try{
+    const res = await fetch("https://api.openai.com/v1/chat/completions",{
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json",
+        "Authorization":"Bearer "+OPENAI_API_KEY
+      },
+      body:JSON.stringify({
+        model:"gpt-4o-mini",
+        messages:[{role:"user",content:text}]
+      })
+    });
+
+    const data = await res.json();
+    const reply = data.choices?.[0]?.message?.content || "AI tidak merespon";
+    ai.textContent="";
+    typeText(ai,reply,18);
+
+  }catch(err){
+    ai.textContent="Error koneksi AI ❌";
+    console.error(err);
+  }
+}
+</script>
+
+</body>
+</html>
